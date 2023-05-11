@@ -1,3 +1,0 @@
-# Caterev Robert
-
-.idea/
