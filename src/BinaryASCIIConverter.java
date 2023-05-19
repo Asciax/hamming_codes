@@ -32,6 +32,9 @@ final class BinaryASCIIConverter {
      * O(n) runtime because of the binary check.
      */
     public static String convertToASCII(Integer[] input) throws IllegalArgumentException{
+        if (input.length % 8 != 0){
+            throw new IllegalArgumentException("Number of bits has to be a multiple of 8");
+        }
         for (Integer i : input){
             if (i != 1 && i != 0){
                 throw new IllegalArgumentException("Stream has to contain only binary");
