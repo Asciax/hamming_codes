@@ -31,8 +31,8 @@ final class BinaryASCIIConverter {
      * Returns : String containing (charsetName) characters
      * O(n) runtime because of the binary check.
      */
-    public static String convertToASCII(int[] input) throws IllegalArgumentException{
-        for (int i : input){
+    public static String convertToASCII(Integer[] input) throws IllegalArgumentException{
+        for (Integer i : input){
             if (i != 1 && i != 0){
                 throw new IllegalArgumentException("Stream has to contain only binary");
             }
@@ -42,9 +42,9 @@ final class BinaryASCIIConverter {
         char[] char_arr = new char[nb_bytes];
 
         for (int bitindex = 0; index < nb_bytes; index++, bitindex+=8 ){
-            int val = 128*input[bitindex] + 64*input[bitindex+1] + 32*input[bitindex+2] + 16*input[bitindex+3]
+            Integer val = 128*input[bitindex] + 64*input[bitindex+1] + 32*input[bitindex+2] + 16*input[bitindex+3]
                     + 8*input[bitindex+4] + 4*input[bitindex+5] + 2*input[bitindex+6] + input[bitindex+7];
-            char_arr[index] = (char) val;
+            char_arr[index] = (char) val.intValue();
         }
 
         return String.valueOf(char_arr);
@@ -52,12 +52,12 @@ final class BinaryASCIIConverter {
 
 
     // Converts ASCII String to binary, outputs binary array
-    public static int[] convertToBinary(String input) throws IllegalArgumentException{
+    public static Integer[] convertToBinary(String input) throws IllegalArgumentException{
         if (input == null || input.length() == 0){
             throw new IllegalArgumentException("Input string cannot be null or empty.");
         }
 
-        int[] output = new int[input.length()*8];
+        Integer[] output = new Integer[input.length()*8];
         byte[] byte_arr;
 
         // Verifying that the charset is supported, if not defaulting to ASCII.
@@ -72,7 +72,7 @@ final class BinaryASCIIConverter {
 
         int tempindex = 0;
         for (byte current: byte_arr){
-            int temp_byte = current;
+            Integer temp_byte = (int) current;
             for (int i = 0; i < 8; i++){
                 output[tempindex] = (temp_byte & 128 ) == 0 ? 0 : 1;
                 tempindex++;
