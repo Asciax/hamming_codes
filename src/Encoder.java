@@ -13,7 +13,7 @@ public class Encoder {
     private Integer[] bitstream;
 
     // LinkedList used as a queue in encode()/
-    private LinkedList<Integer[]> nibble_queue;
+    private LinkedList<Integer[]> nibbleQueue;
 
     // Final encoded result presented as Integer ArrayList.
     private ArrayList<Integer> raw_final;
@@ -34,7 +34,7 @@ public class Encoder {
     private final Integer[] seven_four_generator_matrixT = {13, 11, 8, 7, 4, 2, 1};
     public Encoder(String raw_message){
         this.raw_msg = raw_message;
-        this.nibble_queue = new LinkedList<Integer[]>();
+        this.nibbleQueue = new LinkedList<Integer[]>();
         this.raw_final = new ArrayList<Integer>();
     }
 
@@ -43,11 +43,11 @@ public class Encoder {
 
         // Nibble queue to be used by a more general Hamming code algorithm
         for (int i = 0, j = 0; i < (this.bitstream.length / 4); i++, j+=4){
-            this.nibble_queue.addFirst( Arrays.copyOfRange(this.bitstream, j, j+4));
+            this.nibbleQueue.addFirst( Arrays.copyOfRange(this.bitstream, j, j+4));
         }
 
-        while (!this.nibble_queue.isEmpty()){
-            Integer[] current_nibble = this.nibble_queue.removeLast();
+        while (!this.nibbleQueue.isEmpty()){
+            Integer[] current_nibble = this.nibbleQueue.removeLast();
             //ArrayList<Integer> hamming_nibble = new ArrayList<Integer>();
             int nibble_value = nibbleToInt(current_nibble);
             for (int i = 0 ; i < 7; i++){
@@ -64,7 +64,7 @@ public class Encoder {
         this.final_code = strBuilder.toString();
     }
 
-    private int nibbleToInt(Integer[] nibble){
+    private int nibbleToInt(Integer[] nibble) throws IllegalArgumentException{
         if (nibble.length != 4){
             throw new IllegalArgumentException("A nibble has 4 bits, please input an array of length 4");
         }
