@@ -2,9 +2,9 @@
 // June 2023
 
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.Objects;
 
 public class Decoder {
     // Check matrix used to verify whether any transmission errors occured:
@@ -15,38 +15,41 @@ public class Decoder {
     private final Integer[] parity_check_matrix = {85, 51, 15};
 
     // Raw bitstream of encoded message
-    private Integer[] bitstream;
+    private Integer[] bitstream_in;
 
     // In case the encoded message is passed as a String.
     private String incomingStringCode;
 
     // Current 7-bit hamming code error position, 0 if no errors.
-    private int errorPosition;
+    private int errorPosition = 0;
 
     // Queue to keep track of the 7-bit arrays to decode.
     private LinkedList<Integer[]> codeQueue;
 
-    public void setBitstream(Integer[] bitstream)
+    // ArrayList to get final decoded sequence
+    private ArrayList<Integer> bitstream_out;
+
+    public void setBitstream_in(Integer[] bitstream_in)
         throws  NullPointerException, IllegalArgumentException{
-        if (bitstream == null) {
+        if (bitstream_in == null) {
             throw new NullPointerException("bitsream cannot be null");
         }
-        else if ((bitstream.length % 7) != 0){
+        else if ((bitstream_in.length % 7) != 0){
             throw new IllegalArgumentException("Bitstream has to have a length multiple of 7." +
                     "Possible loss of information occured.");
         }
         else {
-            for (Integer bit : bitstream){
+            for (Integer bit : bitstream_in){
                 if (bit != 0 && bit != 1){
                     throw new IllegalArgumentException("Bitstream has to contain only bits!");
                 }
             }
-            this.bitstream = bitstream;
+            this.bitstream_in = bitstream_in;
         }
     }
 
-    public Integer[] getBitstream(){
-        return Arrays.copyOf(this.bitstream, this.bitstream.length);
+    public Integer[] getBitstream_in(){
+        return Arrays.copyOf(this.bitstream_in, this.bitstream_in.length);
     }
 
     public void setIncomingStringCode(String incomingStringCode) throws NullPointerException {
@@ -68,9 +71,20 @@ public class Decoder {
         return cloneQueue;
     }
 
-    public Decoder(Integer[] bitstream){
-        this.setBitstream(bitstream);
+    public Integer[] getBitstream_out() {
+        Integer[] returnArr = new Integer[this.bitstream_out.size()];
+        return bitstream_out.toArray(returnArr);
+    }
+
+    public String getDecodedSequence(){
+        Integer[] bitstream = this.getBitstream_out();
+        return BinaryASCIIConverter.convertToASCII(bitstream);
+    }
+
+    public Decoder(Integer[] bitstream_in){
+        this.setBitstream_in(bitstream_in);
         this.codeQueue = new LinkedList<>();
+        this.bitstream_out = new ArrayList<>();
     }
     public Decoder(String incomingString){
         this.setIncomingStringCode(incomingString);
@@ -80,34 +94,47 @@ public class Decoder {
                     "Possible loss of information occured.");
         }
 
-        this.bitstream = new Integer[this.incomingStringCode.length()];
+        this.bitstream_in = new Integer[this.incomingStringCode.length()];
         this.codeQueue = new LinkedList<>();
+        this.bitstream_out = new ArrayList<>();
         this.processInput();
     }
 
     public void decode(){
+        this.loadQueue();
+        while (!this.codeQueue.isEmpty()){
+            Integer[] currentArr = this.codeQueue.removeLast();
+            checkCodeSegment(currentArr);
+            if (this.errorPosition != 0){
+                // HANDLE ERROR
+                this.errorPosition = 0;
+            }
+            else {
+                this.bitstream_out.add(currentArr[2]);
+                this.bitstream_out.add(currentArr[4]);
+                this.bitstream_out.add(currentArr[5]);
+                this.bitstream_out.add(currentArr[6]);
+            }
 
+        }
     }
 
-    void checkAll() throws IllegalArgumentException{
+    void checkCodeSegment(Integer[] codeSegment) throws IllegalArgumentException{
         Integer[] errorBinaryPosition = new Integer[3];
-        for (int k=0; k<this.bitstream.length; k+=7){
-            Integer currentCodeVal = Decoder.codeSegmentToInt(Arrays.copyOfRange(this.bitstream, k, k+7));
-            for (int i=0; i<3; i++){
+        Integer currentCodeVal = Decoder.codeSegmentToInt(Arrays.copyOfRange(codeSegment, 0, 7));
+        for (int i=0; i<3; i++){
 
-                errorBinaryPosition[i] = Integer.bitCount(
-                        this.parity_check_matrix[i] & currentCodeVal) % 2;
+            errorBinaryPosition[i] = Integer.bitCount(
+                    this.parity_check_matrix[i] & currentCodeVal) % 2;
             }
             for (Integer errBit: errorBinaryPosition){
                 if (errBit != 0){
+                    this.errorPosition = errorBinaryPosition[2]*4+errorBinaryPosition[1]*2+errorBinaryPosition[0] - 1;
                     // METHOD TO WRITE : HANDLE ERROR
-                    throw new IllegalArgumentException("Error in the code segment [" + k + "," + (k+7) + "] at position [" +
-                            (errorBinaryPosition[2]*4+errorBinaryPosition[1]*2+errorBinaryPosition[0] + 1 + "/7]."));
-                    // 1 added to the index to correct for index starting at 0
-                    // in computer science and at 1 in hamming notation.
+                    throw new IllegalArgumentException("Error in the code segment at position [" +
+                            (errorBinaryPosition[2]*4+errorBinaryPosition[1]*2+errorBinaryPosition[0] + "/7]."));
                 }
             }
-        }
     }
 
     private static Integer codeSegmentToInt(Integer[] codeSegment){
@@ -116,9 +143,9 @@ public class Decoder {
 
 
     void loadQueue(){
-        for (int i=0, j=0; i<(this.bitstream.length/7); i++, j+=7){
+        for (int i = 0, j = 0; i<(this.bitstream_in.length/7); i++, j+=7){
             this.codeQueue.addFirst(
-                    Arrays.copyOfRange(this.bitstream, j, j+7)
+                    Arrays.copyOfRange(this.bitstream_in, j, j+7)
             );
         }
     }
@@ -126,15 +153,10 @@ public class Decoder {
     private void processInput(){
         if (this.incomingStringCode != null){
             String[] preliminaryArr = this.incomingStringCode.split("");
-            for (int i=0; i<this.bitstream.length; i++){
-                this.bitstream[i] = Integer.parseInt(preliminaryArr[i]);
+            for (int i = 0; i<this.bitstream_in.length; i++){
+                this.bitstream_in[i] = Integer.parseInt(preliminaryArr[i]);
             }
         }
     }
 
-    public static void main(String[] args){
-
-
-
-    }
 }

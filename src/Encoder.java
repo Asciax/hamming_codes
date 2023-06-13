@@ -87,7 +87,7 @@ public class Encoder {
     }
 
     public static void main(String[] args) {
-        String test = "R";
+        String test = "HelloWorld?";
         Encoder encoderV1 = new Encoder(test);
         encoderV1.encode();
         System.out.println(Arrays.toString(encoderV1.bitstream));
