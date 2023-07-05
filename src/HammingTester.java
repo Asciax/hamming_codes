@@ -34,7 +34,7 @@ class HammingTester {
         System.out.println("\n" + Arrays.toString(enc.getBitstreamOut()));
         System.out.println(enc.getCodeString());
     }
-    
+
     public void DecoderFinalTest(Integer[] incomingBitstream){
         Decoder dec = new Decoder(incomingBitstream);
         System.out.println(Arrays.toString(dec.getBitstream_in()));
