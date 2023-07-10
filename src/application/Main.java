@@ -1,5 +1,8 @@
+package application;
 // Author : Robert C.
 // July 2023
+
+import application.HammingApplication;
 
 public class Main {
 
